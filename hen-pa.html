@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Henryville Holiday Retreat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8; /* A warm cream background */
+        }
+        .newsletter-container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #FAF7F2; /* Off-white cream */
+            border: 1px solid #C2D1C9; /* Subtle green border */
+        }
+        .header {
+            background-color: #1A472A; /* Deep Royal Green */
+            padding: 24px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #FFFFFF; /* White text for contrast */
+        }
+        .main-content {
+            padding: 32px;
+        }
+        .main-content h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1A472A; /* Deep Green */
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .main-content p {
+            font-size: 16px;
+            color: #5E5046;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin: 32px 0;
+        }
+        .image-grid img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .itinerary-section h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1A472A; /* Deep Green */
+            margin-top: 32px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #C2D1C9;
+            padding-bottom: 8px;
+        }
+        .itinerary-item {
+            margin-bottom: 24px;
+        }
+        .itinerary-item h4 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A472A; /* Deep Green */
+            margin-bottom: 8px;
+        }
+        .itinerary-item p, .itinerary-item li {
+            font-size: 15px;
+            color: #5E5046;
+            line-height: 1.6;
+        }
+        .itinerary-item ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+        
+        /* Gemini Feature Styles */
+        .gemini-features {
+            background-color: #E8F3EB; /* Very light sage/mint to match deposit section style */
+            border: 1px solid #C2D1C9;
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 32px;
+        }
+        .gemini-features h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1A472A; /* Deep Green */
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .gemini-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        @media (min-width: 640px) {
+            .gemini-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .gemini-card {
+            background-color: #FAF7F2; /* Off-white cream */
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .gemini-card h4 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A472A; /* Deep Green */
+            margin-bottom: 12px;
+        }
+        .gemini-button {
+            background-color: #1A472A; /* Deep Green */
+            color: #FFFFFF;
+            font-weight: 500;
+            padding: 10px 16px;
+            border-radius: 6px;
+            width: 100%;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .gemini-button:hover {
+            background-color: #143821; /* Even darker green on hover */
+        }
+        .gemini-button:disabled {
+            background-color: #BDBDBD;
+            cursor: not-allowed;
+        }
+        .gemini-output {
+            margin-top: 16px;
+            font-size: 14px;
+            color: #5E5046;
+            border-top: 1px solid #C2D1C9;
+            padding-top: 16px;
+            min-height: 50px;
+        }
+        .gemini-output ul, .gemini-output ol {
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+        .gemini-output li {
+            margin-bottom: 4px;
+        }
+
+        /* Deposit Section Styles */
+        .deposit-section {
+            background-color: #E8F3EB; /* Light Green/Sage tint */
+            border: 2px dashed #1A472A; /* Deep Green */
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            margin: 32px 0;
+        }
+        .deposit-section h3 {
+            color: #1A472A; /* Deep Green */
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .deposit-details {
+            font-size: 18px;
+            color: #2C332E; /* Darker grey-green for text */
+            margin-bottom: 8px;
+        }
+        .deposit-highlight {
+            font-weight: 700;
+            font-size: 20px;
+            color: #1A472A; /* Deep Green */
+        }
+        
+        /* Link Styles */
+        .activity-link {
+            color: #1A472A;
+            text-decoration: underline;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .activity-link:hover {
+            color: #143821;
+        }
+
+        /* Error Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #FAF7F2; /* Off-white cream */
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+        }
+        .modal-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #D9534F;
+            margin-bottom: 16px;
+        }
+        .modal-body {
+            font-size: 16px;
+            color: #5E5046;
+            margin-bottom: 24px;
+        }
+        .modal-close-btn {
+            background-color: #1A472A;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            float: right;
+        }
+
+        .footer-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            margin-top: 32px;
+        }
+        .footer {
+            text-align: center;
+            padding: 32px;
+            font-size: 12px;
+            color: #6B7A70;
+            background-color: #E8F3EB; /* Light Green footer background */
+        }
+    </style>
+</head>
+<body>
+    <div class="newsletter-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Henryville Holiday Retreat</h1>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <h2>Your Pre-Christmas Itinerary</h2>
+            <p>
+                Final details for the upcoming group trip to Henryville, PA, scheduled for 
+                <strong>December 19 - 22, 2026</strong>. We'll be staying at this <a href="https://www.vrbo.com/4492314ha" target="_blank" class="activity-link">Unique Estate with Private Heated Indoor Pool</a>. Below is the schedule of events and available activities.
+            </p>
+
+            <!-- ========== DEPOSIT SECTION ========== -->
+            <div class="deposit-section">
+                <h3>💰 Payment Schedule</h3>
+                <p style="font-style: italic; margin-bottom: 20px; color: #5E5046;">(The sooner payments are collected, the better!)</p>
+                
+                <div style="margin-bottom: 16px;">
+                    <p class="deposit-details"><strong>1st Payment: $275</strong></p>
+                    <p class="deposit-details">Due by <span class="deposit-highlight">February 1st, 2026</span></p>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <p class="deposit-details"><strong>Final Payment: $250</strong></p>
+                    <p class="deposit-details">Due by <span class="deposit-highlight">November 1st, 2026</span></p>
+                </div>
+                
+                <div style="border-top: 1px dashed #1A472A; padding-top: 16px; width: 80%; margin: 0 auto;">
+                    <p class="deposit-details">Please send via <strong>Zelle</strong> to:</p>
+                    <p class="deposit-details deposit-highlight">(850)-543-4309</p>
+                </div>
+            </div>
+            <!-- ========== END DEPOSIT SECTION ========== -->
+
+            <!-- Itinerary Section -->
+            <div class="itinerary-section">
+                <h3>Event Itinerary</h3>
+                <p style="text-align: center; font-size: 14px; color: #5E5046; margin-top: -12px; margin-bottom: 24px; font-style: italic;">
+                    (Please note: All activities are tentative and subject to change.)
+                </p>
+                
+                <!-- Saturday -->
+                <div class="itinerary-item">
+                    <h4>Saturday, Dec 19: Arrival Day</h4>
+                    <p>Travel and check-in. The designated airport is Wilkes-Barre/Scranton International (AVP). The evening will include a group dinner and a Christmas movie screening.</p>
+                </div>
+
+                <!-- Sunday -->
+                <div class="itinerary-item">
+                    <h4>Sunday, Dec 20: Day at Bear Creek & Evening Activity</h4>
+                    <p>Daytime activities are at <a href="https://www.bcmountainresort.com/" target="_blank" class="activity-link">Bear Creek Mountain Resort</a>, with a group activity back at the house in the evening.</p>
+                    <ul>
+                        <li><strong>Bear Creek:</strong> Snow Tubing (Main group activity. Note: 6+ years old & 42"+ tall. Single-rider tubes only. Waiver required.)</li>
+                        <li><strong>Bear Creek (Optional):</strong> Sunrise Mountain Walk ($40 per person) or The Spa.</li>
+                        <li><strong>Dining:</strong> Multiple food options are available on-site at the resort.</li>
+                        <li><strong>Evening Event:</strong> White Elephant gift exchange at the house ($25 limit).</li>
+                    </ul>
+                </div>
+
+                <!-- Monday -->
+                <div class="itinerary-item">
+                    <h4>Monday, Dec 21: Local & On-Site Activities</h4>
+                    <p>A flexible day for on-site relaxation or local exploration.</p>
+                    <ul>
+                        <li><strong>On-Site:</strong> Enjoy the indoor pool, watch football games, or join the group BBQ.</li>
+                        <li><strong>Local Dining:</strong> <a href="https://www.cookscornerrestaurant.com/" target="_blank" class="activity-link">Cook's Corner Restaurant</a> (optional group lunch).</li>
+                        <li><strong>Local Shopping:</strong> Visit the <a href="https://www.houseofcandles.com/index.cfm?e=product&productId=29554&itemcategory=72986" target="_blank" class="activity-link">Pocono House of Candles</a>.</li>
+                        <li><strong>Local Activity:</strong> <a href="https://sunsetrange.com/rental-gallery-price-list/" target="_blank" class="activity-link">Sunset Hill Shooting Range</a> is available for those interested.</li>
+                    </ul>
+                </div>
+
+                <!-- Tuesday -->
+                <div class="itinerary-item">
+                    <h4>Tuesday, Dec 22: Departure Day</h4>
+                    <p>A final group breakfast will be held at the house prior to check-out and departure.</p>
+                </div>
+            </div>
+
+            <!-- ========== NEW SIMULATED FEATURES SECTION ========== -->
+            <div class="gemini-features">
+                <h3>✨ Trip Tools</h3>
+                <div class="gemini-grid">
+                    <!-- Packing List Card -->
+                    <div class="gemini-card">
+                        <h4>Packing List</h4>
+                        <button id="packing-btn" class="gemini-button">✨ Create Packing List</button>
+                        <div id="packing-output" class="gemini-output">Click the button to get a personalized packing list!</div>
+                    </div>
+                    
+                    <!-- Movie Night Card -->
+                    <div class="gemini-card">
+                        <h4>Movie Recommender</h4>
+                        <button id="movie-btn" class="gemini-button">✨ Suggest Christmas Movies</button>
+                        <div id="movie-output" class="gemini-output">Perfect for movie night. Get 5 suggestions!</div>
+                    </div>
+                </div>
+            </div>
+            <!-- ========== END OF NEW SECTION ========== -->
+
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Henryville Holiday Trip | December 2026</p>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">An Error Occurred</div>
+            <div id="error-message" class="modal-body"></div>
+            <button id="modal-close-btn" class="modal-close-btn">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const packingBtn = document.getElementById('packing-btn');
+            const packingOutput = document.getElementById('packing-output');
+            const movieBtn = document.getElementById('movie-btn');
+            const movieOutput = document.getElementById('movie-output');
+            const errorModal = document.getElementById('error-modal');
+            const errorMessage = document.getElementById('error-message');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            // --- Error Modal Functions ---
+            function showErrorModal(message) {
+                errorMessage.textContent = message;
+                errorModal.classList.add('visible');
+            }
+
+            function closeErrorModal() {
+                errorModal.classList.remove('visible');
+            }
+
+            modalCloseBtn.addEventListener('click', closeErrorModal);
+
+            // --- HARDCODED DATA (Simulating AI) ---
+            
+            const staticPackingList = `
+                <ul>
+                    <li><strong>Clothing:</strong> Warm winter coat, snow pants/bibs (for tubing), waterproof gloves, scarf, beanie, thermal layers, cozy sweaters/hoodies, comfortable lounge clothes, pajamas.</li>
+                    <li><strong>Footwear:</strong> Snow boots, warm socks (wool is best), indoor slippers/house shoes.</li>
+                    <li><strong>Swim Gear:</strong> Swimsuit (don't forget the indoor pool!), flip flops, swim cover-up.</li>
+                    <li><strong>Toiletries:</strong> Toothbrush/paste, shampoo/conditioner, soap/body wash, deodorant, skincare, hair products, personal medications.</li>
+                    <li><strong>Electronics:</strong> Phone charger, portable power bank, camera/GoPro for action shots.</li>
+                    <li><strong>Documents/Money:</strong> ID/Driver's license, health insurance card, cash for tips/small purchases, copy of itinerary.</li>
+                    <li><strong>Miscellaneous:</strong> White Elephant gift ($25 limit), snacks for the road/house, reusable water bottle, sunglasses (snow glare!).</li>
+                </ul>
+            `;
+
+            const staticMovieList = `
+                <ol>
+                    <li><strong>The Preacher's Wife (1996):</strong> A heartwarming classic starring Denzel Washington and Whitney Houston about an angel sent to help a struggling church and its pastor.</li>
+                    <li><strong>This Christmas (2007):</strong> A family drama-comedy featuring a star-studded cast (Regina King, Idris Elba, Chris Brown) reuniting for the holidays with plenty of secrets and surprises.</li>
+                    <li><strong>Almost Christmas (2016):</strong> A hilarious and touching story about a beloved patriarch (Danny Glover) who asks his dysfunctional family for one gift: to get along for five days.</li>
+                    <li><strong>The Best Man Holiday (2013):</strong> The long-awaited sequel that reunites college friends for a Christmas filled with romance, laughter, and tear-jerking moments.</li>
+                    <li><strong>Jingle Jangle: A Christmas Journey (2020):</strong> A magical, musical adventure perfect for families, following a toymaker and his granddaughter who restore wonder to their lives.</li>
+                </ol>
+            `;
+
+            // --- Event Handler: Packing List ---
+            packingBtn.addEventListener('click', async () => {
+                // 1. Show loading state
+                packingOutput.innerHTML = "Creating... <div>&#x23f3;</div>";
+                packingBtn.disabled = true;
+
+                // 2. Simulate delay (1.5 seconds)
+                setTimeout(() => {
+                    // 3. Display hardcoded content
+                    packingOutput.innerHTML = staticPackingList;
+                    packingBtn.disabled = false;
+                }, 1500); 
+            });
+
+            // --- Event Handler: Movie List ---
+            movieBtn.addEventListener('click', async () => {
+                // 1. Show loading state
+                movieOutput.innerHTML = "Creating... <div>&#x23f3;</div>";
+                movieBtn.disabled = true;
+
+                // 2. Simulate delay (1.5 seconds)
+                setTimeout(() => {
+                    // 3. Display hardcoded content
+                    movieOutput.innerHTML = staticMovieList;
+                    movieBtn.disabled = false;
+                }, 1500);
+            });
+
+        });
+    </script>
+</body>
+</html>
