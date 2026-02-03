@@ -49,6 +49,7 @@
                     <button onclick="navigate('home')" class="nav-link hover:text-white transition-colors" data-view="home">Home</button>
                     <button onclick="navigate('itinerary')" class="nav-link hover:text-white transition-colors" data-view="itinerary">Itinerary</button>
                     <button onclick="navigate('guests')" class="nav-link hover:text-white transition-colors" data-view="guests">Guest List</button>
+                    <button onclick="navigate('packing')" class="nav-link hover:text-white transition-colors" data-view="packing">Packing</button>
                     <button onclick="navigate('gallery')" class="nav-link hover:text-white transition-colors" data-view="gallery">Estate</button>
                     <button onclick="navigate('faq')" class="nav-link hover:text-white transition-colors" data-view="faq">Details</button>
                 </div>
@@ -61,7 +62,7 @@
                 <button id="admin-nav-btn" onclick="navigate('admin')" class="hidden bg-white/10 p-2 rounded-full border border-white/10 hover:border-white transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
-                <button onclick="toggleMobileMenu()" class="xl:hidden text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
+                <button onclick="toggleMobileMenu()" class="xl:hidden text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" x2="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
             </div>
         </nav>
 
@@ -71,6 +72,7 @@
             <button onclick="navigate('home')" class="text-4xl font-serif italic text-white text-left">Home</button>
             <button onclick="navigate('itinerary')" class="text-4xl font-serif italic text-white text-left">Journey</button>
             <button onclick="navigate('guests')" class="text-4xl font-serif italic text-white text-left">Guest List</button>
+            <button onclick="navigate('packing')" class="text-4xl font-serif italic text-white text-left">Packing List</button>
             <button onclick="navigate('gallery')" class="text-4xl font-serif italic text-white text-left">Estate</button>
             <button onclick="navigate('faq')" class="text-4xl font-serif italic text-white text-left">Details</button>
             <button onclick="navigate('concierge')" class="text-4xl font-serif italic text-white text-left">Submit Question</button>
@@ -187,9 +189,6 @@
         window.onload = () => {
             signInAnonymously(auth).catch(err => {
                 console.error("Auth Failure:", err);
-                if(err.code === 'auth/configuration-not-found') {
-                    alert("FATAL ERROR: Anonymous Auth is disabled in Firebase Console. Please enable it in 'Authentication' > 'Sign-in method'.");
-                }
             });
 
             onAuthStateChanged(auth, (user) => {
@@ -232,7 +231,7 @@
             if (pass === "Admin2026") {
                 state.isAdmin = true;
                 showApp();
-            } else if (pass === "GUEST2026") {
+            } else if (pass.toUpperCase() === "GUEST2026") {
                 state.isAdmin = false;
                 showApp();
             } else {
@@ -279,32 +278,20 @@
             if (!input) return;
             const txt = input.value;
             if(!txt.trim()) {
-                alert("Please enter a message before sending.");
+                alert("Please enter a message.");
                 return;
             }
 
             try {
-                // Ensure auth before writing
-                if (!auth.currentUser) {
-                    throw new Error("You must be signed in to send messages.");
-                }
-
+                if (!auth.currentUser) throw new Error("Connection lost.");
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'questions'), {
-                    text: txt, 
-                    timestamp: Date.now(), 
-                    answer: ""
+                    text: txt, timestamp: Date.now(), answer: ""
                 });
-
-                alert("Inquiry Sent Successfully.");
+                alert("Inquiry Sent.");
                 input.value = "";
                 navigate('home');
             } catch (error) {
-                console.error("Submission Error:", error);
-                if (error.code === 'permission-denied') {
-                    alert("PERMISSION ERROR: Your message could not be sent. Please ensure you have enabled read/write access for authenticated users in your Firebase Firestore Rules.");
-                } else {
-                    alert("ERROR: " + error.message);
-                }
+                alert("ERROR: " + error.message);
             }
         };
 
@@ -314,7 +301,6 @@
             const fileInput = document.getElementById('adm-photo-file');
             const caption = document.getElementById('adm-photo-cap').value;
             
-            // Priority 1: File Upload
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 state.isUploading = true;
@@ -326,10 +312,10 @@
                     const url = await getDownloadURL(snapshot.ref);
                     
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), { url, caption });
-                    alert("Image uploaded from computer successfully.");
+                    alert("Image successfully added to the Estate.");
                 } catch (e) {
                     console.error(e);
-                    alert("Failed to upload image. Please check your Storage settings.");
+                    alert("Failed to upload image. Verify Storage is enabled in Firebase.");
                 } finally {
                     state.isUploading = false;
                     fileInput.value = "";
@@ -339,21 +325,19 @@
                 return;
             }
 
-            // Priority 2: URL
             if (urlInput.value.trim()) {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), { url: urlInput.value, caption });
                 urlInput.value = "";
                 document.getElementById('adm-photo-cap').value = "";
-                alert("URL-based image added.");
+                alert("Visual added.");
                 render();
                 return;
             }
-
-            alert("Please select a file or provide a URL.");
+            alert("Provide a file or URL.");
         };
 
         window.deletePhoto = async (id) => {
-            if(confirm("Delete this visual?")) {
+            if(confirm("Delete visual?")) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gallery', id));
             }
         };
@@ -369,11 +353,11 @@
                 name, party, p1: false, p2: false, flights: false
             });
             nameInput.value = "";
-            alert("Guest Registered.");
+            alert("Guest Added.");
         };
 
         window.deleteGuest = async (id) => {
-            if(confirm("Permanently delete guest?")) {
+            if(confirm("Permanently remove guest?")) {
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'attendees', id));
             }
         };
@@ -404,7 +388,7 @@
             } else {
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'content'), updates);
             }
-            alert("Global Configuration Updated.");
+            alert("Global Updates Saved.");
         };
 
         window.toggleMobileMenu = () => {
@@ -420,7 +404,6 @@
             const container = document.getElementById('view-container');
             if(!container) return;
 
-            // Sync Nav State
             document.querySelectorAll('.nav-link').forEach(link => {
                 if(link.dataset.view === state.view) link.classList.add('text-white');
                 else link.classList.remove('text-white');
@@ -443,7 +426,7 @@
                                 </div>
                                 <p class="text-neutral-500 text-sm max-w-sm leading-relaxed font-light">${state.content.heroSub}</p>
                                 <button onclick="navigate('itinerary')" class="group flex flex-col items-center gap-4 w-max">
-                                    <div class="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all shadow-2xl">
+                                    <div class="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
                                     </div>
                                     <span class="text-[9px] uppercase tracking-widest text-neutral-700 font-bold">Journey Map</span>
@@ -459,23 +442,21 @@
                                 <h3 class="text-xs uppercase tracking-[0.3em] text-white">Key Logistics</h3>
                                 <div class="space-y-4 text-sm font-light text-neutral-500">
                                     <p>Airport Hub: Newark (EWR)</p>
-                                    <p>Shuttle Time: Arrive by ${state.content.vanDeadline}</p>
-                                    <p>Deposit 1: ${state.content.p1Amount} (Due ${state.content.p1Date})</p>
+                                    <p>Deposit 1 Due: ${state.content.p1Date}</p>
                                     <p class="text-white font-bold tracking-widest uppercase">Zelle: ${state.content.zelle}</p>
                                 </div>
                             </div>
                             <div class="bg-black p-12 space-y-8">
-                                <h3 class="text-xs uppercase tracking-[0.3em] text-white">Travel Policy</h3>
+                                <h3 class="text-xs uppercase tracking-[0.3em] text-white">Policy</h3>
                                 <p class="text-neutral-400 text-xs font-light leading-relaxed">${state.content.policy}</p>
-                                <div class="inline-block border border-white/20 px-4 py-2 text-[9px] uppercase tracking-widest text-white font-bold italic">Registration Active</div>
                             </div>
                         </div>
 
                         <div class="bg-white/5 border border-white/10 p-12 md:p-20 text-center space-y-8 rounded-2xl">
-                            <h2 class="text-2xl font-serif italic text-white uppercase tracking-widest">Important Reminder</h2>
+                            <h2 class="text-2xl font-serif italic text-white uppercase tracking-widest leading-tight">Important Reminder</h2>
                             <p class="text-xl text-white font-bold max-w-2xl mx-auto italic leading-relaxed">
-                                This trip is strictly <span class="underline">non-refundable</span>. 
-                                The final deadline to reconsider is **${state.content.backOutDeadline}**.
+                                This trip is strictly non-refundable. <br />
+                                The deadline to reconsider is **${state.content.backOutDeadline}**.
                             </p>
                         </div>
                     </div>
@@ -485,9 +466,9 @@
             if (state.view === 'guests') {
                 container.innerHTML = `
                     <div class="view-fade-in max-w-4xl mx-auto space-y-24">
-                        <div class="space-y-4">
+                        <div class="space-y-4 text-center">
                             <h1 class="text-7xl font-serif text-white tracking-tighter italic">Guest List.</h1>
-                            <p class="text-neutral-500 text-[10px] uppercase tracking-[0.4em]">Attendee Status Dashboard</p>
+                            <p class="text-neutral-500 text-[10px] uppercase tracking-[0.4em]">Attendee Registry</p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             ${state.attendees.map(g => {
@@ -500,8 +481,8 @@
                                             <p class="text-[9px] uppercase tracking-widest text-neutral-600 font-bold">Party of ${g.party}</p>
                                         </div>
                                         ${isConfirmed ? `
-                                            <div class="space-y-8 animate-in fade-in">
-                                                <div class="space-y-4">
+                                            <div class="space-y-6 animate-in fade-in">
+                                                <div class="space-y-3">
                                                     <div class="flex justify-between text-[10px] uppercase tracking-[0.3em] text-neutral-500 font-bold">
                                                         <span>Progress</span>
                                                         <span>${Math.round(prog)}%</span>
@@ -511,18 +492,18 @@
                                                     </div>
                                                 </div>
                                                 <div class="grid grid-cols-3 gap-2 text-[8px] uppercase tracking-widest text-neutral-600 font-bold text-center">
-                                                    <div class="${g.p1?'text-white':''}">P1 ${g.p1?'●':'○'}</div>
+                                                    <div class="${g.p1?'text-white':''}">Dep 1 ${g.p1?'●':'○'}</div>
                                                     <div class="${g.p2?'text-white':''}">Final ${g.p2?'●':'○'}</div>
-                                                    <div class="${g.flights?'text-white':''}">Flights ${g.flights?'●':'○'}</div>
+                                                    <div class="${g.flights?'text-white':''}">Air ${g.flights?'●':'○'}</div>
                                                 </div>
                                                 <button onclick="event.stopPropagation(); toggleStatus('${g.id}', 'flights', ${g.flights})" class="w-full py-4 border border-white/10 text-[9px] uppercase tracking-widest font-bold hover:bg-white hover:text-black transition-all">
-                                                    ${g.flights ? 'Flights Confirmed' : 'Mark Flights as Purchased'}
+                                                    ${g.flights ? 'Flight Confirmed ✓' : 'Mark Flights as Purchased'}
                                                 </button>
                                             </div>
                                         ` : `
                                             <div class="flex items-center gap-3 text-neutral-800 text-[9px] uppercase tracking-widest font-bold">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                                <span>Verify Identity to track status</span>
+                                                <span>Verify Identity to view status</span>
                                             </div>
                                         `}
                                     </div>
@@ -536,10 +517,7 @@
             if (state.view === 'itinerary') {
                 container.innerHTML = `
                     <div class="view-fade-in space-y-24">
-                        <div class="space-y-4">
-                            <h1 class="text-7xl font-serif text-white tracking-tighter italic">Journey.</h1>
-                            <p class="text-neutral-500 text-[10px] uppercase tracking-[0.4em]">December 19-22 2026</p>
-                        </div>
+                        <h1 class="text-7xl font-serif text-white tracking-tighter italic">Journey.</h1>
                         <div class="space-y-32 border-l border-white/5 pl-10 relative">
                             <div class="relative"><span class="absolute -left-[45px] top-1 w-2 h-2 rounded-full bg-white"></span><p class="text-[#d4af37] text-[10px] uppercase tracking-[0.4em] font-bold mb-4">Saturday / 19</p><h3 class="text-4xl font-serif italic mb-6">Arrival Day</h3><p class="text-neutral-400 font-light text-lg leading-relaxed max-w-2xl">${state.content.day1Desc}</p></div>
                             <div class="relative"><span class="absolute -left-[45px] top-1 w-2 h-2 rounded-full bg-neutral-800"></span><p class="text-[#d4af37] text-[10px] uppercase tracking-[0.4em] font-bold mb-4">Sunday / 20</p><h3 class="text-4xl font-serif italic mb-6">Mountain Rituals</h3><p class="text-neutral-400 font-light text-lg leading-relaxed max-w-2xl">${state.content.day2Desc}</p></div>
@@ -550,22 +528,51 @@
                 `;
             }
 
+            if (state.view === 'packing') {
+                container.innerHTML = `
+                    <div class="view-fade-in max-w-4xl mx-auto space-y-24">
+                        <div class="space-y-4 text-center">
+                            <h1 class="text-7xl font-serif text-white tracking-tighter italic">Packing.</h1>
+                            <p class="text-neutral-500 text-[10px] uppercase tracking-[0.4em]">Residency Essentials</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5 border border-white/5">
+                            <div class="p-12 space-y-8 bg-black">
+                                <h3 class="text-white text-xs uppercase tracking-[0.3em] font-bold">Snow Gear</h3>
+                                <ul class="space-y-4 text-neutral-400 text-sm font-light">
+                                    <li class="flex gap-4"><span>—</span> <span><strong>Snowsuit:</strong> Highly recommended. Ladies can rent via <a href="https://www.nuuly.com" target="_blank" class="text-white underline">Nuuly</a> subscription.</span></li>
+                                    <li class="flex gap-4"><span>—</span> <span>Insulated Snow Boots (Waterproof)</span></li>
+                                    <li class="flex gap-4"><span>—</span> <span>Thermal Gloves, Scarves & Beanies</span></li>
+                                    <li class="flex gap-4"><span>—</span> <span>Goggles & High SPF Protection</span></li>
+                                </ul>
+                            </div>
+                            <div class="p-12 space-y-8 bg-black">
+                                <h3 class="text-white text-xs uppercase tracking-[0.3em] font-bold">Estate Life</h3>
+                                <ul class="space-y-4 text-neutral-400 text-sm font-light">
+                                    <li class="flex gap-4"><span>—</span> <span><strong>Swimwear:</strong> 2-3 suits for the heated pool/hot tub sessions.</span></li>
+                                    <li class="flex gap-4"><span>—</span> <span>Cozy loungewear (sweatpants, thick hoodies)</span></li>
+                                    <li class="flex gap-4"><span>—</span> <span>Evening wear (casual-chic for group dinners)</span></li>
+                                    <li class="flex gap-4"><span>—</span> <span>Personal toiletries & skincare</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             if (state.view === 'gallery') {
                 container.innerHTML = `
-                    <div class="view-fade-in space-y-24">
-                        <div class="space-y-4">
-                            <h1 class="text-7xl font-serif text-white tracking-tighter italic">Estate.</h1>
-                            <p class="text-neutral-500 text-[10px] uppercase tracking-[0.4em]">Visuals from Henryville Residency</p>
+                    <div class="view-fade-in max-w-4xl mx-auto space-y-20 text-center py-20">
+                        <div class="space-y-6">
+                            <h1 class="text-7xl font-serif text-white tracking-tighter italic">The Estate.</h1>
+                            <p class="text-neutral-500 text-[10px] uppercase tracking-[0.4em]">Henryville Residency Visuals</p>
                         </div>
-                        <div class="columns-1 md:columns-2 lg:columns-3 gap-10 space-y-10">
-                            ${state.gallery.map(img => `
-                                <div class="relative group border border-white/5 overflow-hidden">
-                                    <img src="${img.url}" class="w-full grayscale hover:grayscale-0 transition-all duration-1000">
-                                    <div class="absolute inset-0 p-8 flex items-end bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <p class="text-xs font-serif italic text-white">${img.caption || 'Henryville Estate'}</p>
-                                    </div>
-                                </div>
-                            `).join('')}
+                        <div class="p-20 border border-white/5 bg-white/5 rounded-2xl space-y-10 group hover:border-white/20 transition-all">
+                            <p class="text-neutral-400 text-lg font-light leading-relaxed max-w-lg mx-auto italic">
+                                To view the full floor plan, high-resolution photography, and amenities of the Henryville Estate, please visit the official residency listing.
+                            </p>
+                            <a href="https://www.vrbo.com/4492314ha?referrerId=HOT.HIS.Share.Landed.Copy_Link" target="_blank" class="inline-block bg-white text-black px-12 py-5 font-bold text-[10px] uppercase tracking-[0.3em] hover:bg-neutral-200 transition-all">
+                                Open Virtual Tour
+                            </a>
                         </div>
                     </div>
                 `;
@@ -576,24 +583,18 @@
                     <div class="view-fade-in max-w-2xl mx-auto space-y-20">
                         <div class="text-center space-y-4">
                             <h1 class="text-7xl font-serif text-white tracking-tighter italic">Contact.</h1>
-                            <p class="text-neutral-500 text-[10px] uppercase tracking-[0.4em]">Inquiry submission for hosts</p>
+                            <p class="text-neutral-500 text-[10px] uppercase tracking-[0.4em]">Submission Portal</p>
                         </div>
                         <div class="flex flex-col gap-6">
-                            <textarea id="q-input" placeholder="Type your message or question..." class="bg-transparent border-b border-white/10 p-6 text-2xl font-serif italic text-white focus:outline-none focus:border-white h-40"></textarea>
+                            <textarea id="q-input" placeholder="Submit your message or question..." class="bg-transparent border-b border-white/10 p-6 text-2xl font-serif italic text-white focus:outline-none focus:border-white h-40"></textarea>
                             <button onclick="submitQuestion()" class="bg-white text-black font-bold py-6 text-[10px] uppercase tracking-widest hover:bg-neutral-200">Send Inquiry</button>
                         </div>
-                        <div class="space-y-16 pt-32">
-                            <h3 class="text-xs uppercase tracking-widest text-white font-bold border-b border-white/5 pb-4">Inquiry History</h3>
+                        <div class="space-y-12 pt-32">
                             ${state.questions.map(q => `
-                                <div class="space-y-6 pb-12 border-b border-white/5 last:border-none">
-                                    <p class="text-neutral-800 text-[9px] uppercase tracking-widest font-bold">Query Date: ${new Date(q.timestamp).toLocaleDateString()}</p>
+                                <div class="space-y-4 pb-12 border-b border-white/5 last:border-none">
+                                    <p class="text-neutral-800 text-[9px] uppercase tracking-widest font-bold">${new Date(q.timestamp).toLocaleDateString()}</p>
                                     <p class="text-white text-2xl font-light tracking-tight leading-relaxed">${q.text}</p>
-                                    ${q.answer ? `
-                                        <div class="pl-12 border-l border-white/10 space-y-4">
-                                            <p class="text-neutral-500 text-[10px] uppercase tracking-widest font-bold">Host Response</p>
-                                            <p class="text-neutral-300 italic font-serif text-xl leading-relaxed">${q.answer}</p>
-                                        </div>
-                                    ` : '<p class="text-neutral-800 text-[10px] uppercase tracking-widest">Awaiting Response...</p>'}
+                                    ${q.answer ? `<p class="pl-12 border-l border-white/10 text-neutral-400 italic font-serif text-xl">${q.answer}</p>` : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -602,15 +603,47 @@
             }
 
             if (state.view === 'admin' && state.isAdmin) {
+                // Progress Calculations
+                const total = state.attendees.reduce((acc, g) => acc + (parseInt(g.party) || 1), 0);
+                const d1Paid = state.attendees.filter(g => g.p1).length;
+                const finalPaid = state.attendees.filter(g => g.p2).length;
+                const flights = state.attendees.filter(g => g.flights).length;
+                const d1Perc = state.attendees.length > 0 ? Math.round((d1Paid / state.attendees.length) * 100) : 0;
+                const finalPerc = state.attendees.length > 0 ? Math.round((finalPaid / state.attendees.length) * 100) : 0;
+                const airPerc = state.attendees.length > 0 ? Math.round((flights / state.attendees.length) * 100) : 0;
+
                 container.innerHTML = `
                     <div class="view-fade-in space-y-24">
                         <div class="flex justify-between items-end border-b border-white/10 pb-8">
                             <h1 class="text-5xl font-serif italic">Command Center.</h1>
-                            <button onclick="saveGlobalContent()" class="bg-white text-black px-10 py-4 font-bold text-[10px] uppercase tracking-widest rounded-full">Save Global Updates</button>
+                            <button onclick="saveGlobalContent()" class="bg-white text-black px-10 py-4 font-bold text-[10px] uppercase tracking-widest rounded-full">Save Updates</button>
+                        </div>
+
+                        <!-- OVERALL PROGRESS DASHBOARD -->
+                        <div class="bg-neutral-900 border border-white/10 p-10 rounded-xl space-y-10">
+                            <h3 class="text-[10px] uppercase tracking-[0.5em] text-white font-bold">Overall Residency Statistics</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+                                <div class="space-y-2">
+                                    <p class="text-4xl text-white font-serif italic">${total}</p>
+                                    <p class="text-[9px] uppercase tracking-widest text-neutral-600">Headcount</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <p class="text-4xl text-white font-serif italic">${d1Perc}%</p>
+                                    <p class="text-[9px] uppercase tracking-widest text-neutral-600">Deposit 1 Status</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <p class="text-4xl text-white font-serif italic">${finalPerc}%</p>
+                                    <p class="text-[9px] uppercase tracking-widest text-neutral-600">Final Payment Status</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <p class="text-4xl text-white font-serif italic">${airPerc}%</p>
+                                    <p class="text-[9px] uppercase tracking-widest text-neutral-600">Flight Readiness</p>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-20">
-                            <!-- GUEST MANAGEMENT -->
+                            <!-- GUESTS -->
                             <div class="bg-neutral-900/40 p-10 border border-white/5 space-y-10 rounded-xl">
                                 <h3 class="text-[10px] uppercase tracking-widest font-bold text-white border-b border-white/10 pb-4">Registry Control</h3>
                                 <div class="grid grid-cols-2 gap-4">
@@ -618,54 +651,22 @@
                                     <input id="adm-guest-party" type="number" value="1" class="bg-black/50 border border-white/5 p-4 text-white text-xs">
                                 </div>
                                 <button onclick="addGuest()" class="w-full bg-white text-black py-4 text-[10px] uppercase font-bold tracking-widest">Register Guest</button>
-
-                                <div class="space-y-4 max-h-[600px] overflow-y-auto no-scrollbar pt-10">
+                                <div class="space-y-4 max-h-[500px] overflow-y-auto no-scrollbar pt-6">
                                     ${state.attendees.map(a => `
-                                        <div class="flex flex-col gap-3 p-6 border border-white/5 group hover:border-white/20 transition-all">
-                                            <div class="flex justify-between items-center">
-                                                <span class="font-serif italic text-lg text-white">${a.name} (${a.party})</span>
-                                                <button onclick="deleteGuest('${a.id}')" class="text-red-900 opacity-0 group-hover:opacity-100 transition-opacity"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
-                                            </div>
+                                        <div class="flex items-center justify-between p-4 border border-white/5 group">
+                                            <span class="font-serif italic text-white">${a.name} (${a.party})</span>
                                             <div class="flex gap-2">
-                                                <button onclick="toggleStatus('${a.id}','p1',${a.p1})" class="px-3 py-1 text-[8px] border font-bold uppercase ${a.p1?'bg-white text-black':'text-neutral-600 border-neutral-800'}">P1</button>
-                                                <button onclick="toggleStatus('${a.id}','p2',${a.p2})" class="px-3 py-1 text-[8px] border font-bold uppercase ${a.p2?'bg-white text-black':'text-neutral-600 border-neutral-800'}">Final</button>
-                                                <button onclick="toggleStatus('${a.id}','flights',${a.flights})" class="px-3 py-1 text-[8px] border font-bold uppercase ${a.flights?'bg-white text-black':'text-neutral-600 border-neutral-800'}">Air</button>
+                                                <button onclick="toggleStatus('${a.id}','p1',${a.p1})" class="px-2 py-1 text-[8px] border ${a.p1?'bg-white text-black':'text-neutral-600'}">P1</button>
+                                                <button onclick="toggleStatus('${a.id}','p2',${a.p2})" class="px-2 py-1 text-[8px] border ${a.p2?'bg-white text-black':'text-neutral-600'}">P2</button>
+                                                <button onclick="deleteGuest('${a.id}')" class="text-red-900 ml-4"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
                                             </div>
                                         </div>
                                     `).join('')}
                                 </div>
                             </div>
 
-                            <!-- VISUALS & MESSAGES -->
+                            <!-- INQUIRIES -->
                             <div class="space-y-12">
-                                <div class="bg-neutral-900/40 p-10 border border-white/5 space-y-8 rounded-xl">
-                                    <h3 class="text-[10px] uppercase tracking-widest font-bold text-white border-b border-white/10 pb-4">Estate Visuals</h3>
-                                    <div class="space-y-6">
-                                        <div class="space-y-2">
-                                            <p class="text-[8px] uppercase tracking-widest text-neutral-500 font-bold">Option A: Upload from Computer</p>
-                                            <input id="adm-photo-file" type="file" accept="image/*" class="w-full bg-black/30 border border-dashed border-white/10 p-6 text-[10px] text-neutral-400 file:bg-white/10 file:border-none file:text-white file:px-4 file:py-2 file:text-[9px] file:mr-4 hover:border-white/30 transition-all cursor-pointer">
-                                        </div>
-                                        <div class="space-y-2">
-                                            <p class="text-[8px] uppercase tracking-widest text-neutral-500 font-bold">Option B: Image URL</p>
-                                            <input id="adm-photo-url" placeholder="Paste URL here..." class="w-full bg-black/50 border border-white/5 p-4 text-xs">
-                                        </div>
-                                        <input id="adm-photo-cap" placeholder="Caption (Pool, Master Bed, etc)" class="w-full bg-black/50 border border-white/5 p-4 text-xs">
-                                        <button onclick="handlePhotoPost()" ${state.isUploading ? 'disabled' : ''} class="w-full bg-white text-black py-4 text-[9px] uppercase font-bold tracking-widest flex items-center justify-center gap-3">
-                                            ${state.isUploading ? 'Uploading...' : 'Post Image to Estate'}
-                                        </button>
-                                    </div>
-                                    <div class="grid grid-cols-3 gap-2 pt-10">
-                                        ${state.gallery.map(img => `
-                                            <div class="aspect-square relative group bg-black overflow-hidden">
-                                                <img src="${img.url}" class="w-full h-full object-cover opacity-60">
-                                                <button onclick="deletePhoto('${img.id}')" class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-red-900/40 transition-all">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                                </button>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-
                                 <div class="bg-neutral-900/40 p-10 border border-white/5 space-y-8 rounded-xl">
                                     <h3 class="text-[10px] uppercase tracking-widest font-bold text-white border-b border-white/10 pb-4">Inquiry Inbox</h3>
                                     ${state.questions.filter(q => !q.answer).map(q => `
@@ -675,31 +676,26 @@
                                             <button onclick="replyToQuestion('${q.id}')" class="bg-white text-black px-8 py-3 text-[10px] uppercase font-bold tracking-widest">Send Response</button>
                                         </div>
                                     `).join('')}
+                                    ${state.questions.filter(q => !q.answer).length === 0 ? '<p class="text-neutral-700 text-[9px] uppercase tracking-widest text-center py-6">No pending inquiries.</p>' : ''}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- GLOBAL CONFIG -->
+                        <!-- CONTENT EDIT -->
                         <div class="bg-neutral-900/40 p-10 border border-white/5 space-y-12 rounded-xl">
-                            <h3 class="text-[10px] uppercase tracking-widest font-bold text-white border-b border-white/10 pb-4">Global Site Configuration</h3>
+                            <h3 class="text-[10px] uppercase tracking-widest font-bold text-white border-b border-white/10 pb-4">Site Content</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                <div class="space-y-4">
-                                    <label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Hero Headline</label>
-                                    <input id="ed-heroTitle" value="${state.content.heroTitle}" class="w-full bg-black/50 border border-white/10 p-4 text-white text-sm">
-                                </div>
-                                <div class="space-y-4">
-                                    <label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Zelle Contact</label>
-                                    <input id="ed-zelle" value="${state.content.zelle}" class="w-full bg-black/50 border border-white/10 p-4 text-white text-sm">
-                                </div>
-                                <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Deposit 1 Date</label><input id="ed-p1Date" value="${state.content.p1Date}" class="w-full bg-black/50 border border-white/10 p-4 text-white text-sm"></div>
-                                <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Final Payment Date</label><input id="ed-p2Date" value="${state.content.p2Date}" class="w-full bg-black/50 border border-white/10 p-4 text-white text-sm"></div>
-                                <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Reconsider Deadline</label><input id="ed-backOut" value="${state.content.backOutDeadline}" class="w-full bg-black/50 border border-white/10 p-4 text-white text-sm"></div>
-                                <div class="col-span-full space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Hero Sub-Text</label><textarea id="ed-heroSub" class="w-full bg-black/50 border border-white/10 p-4 text-white text-xs h-24">${state.content.heroSub}</textarea></div>
+                                <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Hero Headline</label><input id="ed-heroTitle" value="${state.content.heroTitle}" class="w-full bg-black/50 border border-white/10 p-4 text-white text-sm"></div>
+                                <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Zelle</label><input id="ed-zelle" value="${state.content.zelle}" class="w-full bg-black/50 border border-white/10 p-4 text-white text-sm"></div>
                                 <div class="col-span-full space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Trip Policy Disclaimer</label><textarea id="ed-policy" class="w-full bg-black/50 border border-white/10 p-4 text-white text-xs h-32">${state.content.policy}</textarea></div>
                                 <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Day 1 Details</label><textarea id="ed-day1" class="w-full bg-black/50 border border-white/10 p-4 text-white text-[10px] h-32">${state.content.day1Desc}</textarea></div>
                                 <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Day 2 Details</label><textarea id="ed-day2" class="w-full bg-black/50 border border-white/10 p-4 text-white text-[10px] h-32">${state.content.day2Desc}</textarea></div>
                                 <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Day 3 Details</label><textarea id="ed-day3" class="w-full bg-black/50 border border-white/10 p-4 text-white text-[10px] h-32">${state.content.day3Desc}</textarea></div>
                                 <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Day 4 Details</label><textarea id="ed-day4" class="w-full bg-black/50 border border-white/10 p-4 text-white text-[10px] h-32">${state.content.day4Desc}</textarea></div>
+                                <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">P1 Date</label><input id="ed-p1Date" value="${state.content.p1Date}" class="w-full bg-black/50 border border-white/10 p-4 text-white text-sm"></div>
+                                <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Final Date</label><input id="ed-p2Date" value="${state.content.p2Date}" class="w-full bg-black/50 border border-white/10 p-4 text-white text-sm"></div>
+                                <div class="space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Reconsider Deadline</label><input id="ed-backOut" value="${state.content.backOutDeadline}" class="w-full bg-black/50 border border-white/10 p-4 text-white text-sm"></div>
+                                <div class="col-span-full space-y-4"><label class="text-[9px] uppercase tracking-widest text-neutral-500 font-bold">Hero Sub-Text</label><textarea id="ed-heroSub" class="w-full bg-black/50 border border-white/10 p-4 text-white text-xs h-24">${state.content.heroSub}</textarea></div>
                             </div>
                         </div>
                     </div>
@@ -708,23 +704,12 @@
 
             if (state.view === 'faq') {
                 container.innerHTML = `
-                    <div class="view-fade-in max-w-4xl mx-auto space-y-24">
-                        <div class="text-center space-y-4">
-                            <h1 class="text-7xl font-serif text-white tracking-tighter italic">Details.</h1>
-                            <p class="text-neutral-500 text-[10px] uppercase tracking-[0.4em]">Essential information for residency residents</p>
-                        </div>
-                        <div class="space-y-20">
+                    <div class="view-fade-in max-w-4xl mx-auto space-y-24 text-center">
+                        <h1 class="text-7xl font-serif text-white tracking-tighter italic">Details.</h1>
+                        <div class="space-y-20 text-left">
                             <div class="space-y-6 border-b border-white/5 pb-16">
-                                <h3 class="text-white text-3xl font-serif italic">Airport & Transport Logistics</h3>
-                                <p class="text-neutral-500 text-lg font-light leading-relaxed">Newark (EWR) is our primary hub. We are providing two 7-passenger vans for transportation from Newark directly to the estate. To utilize this shuttle, your flight MUST arrive by 2:00 PM. If you fly into Wilkes-Barre (AVP) or choose an alternative arrival time, you must provide your own transportation.</p>
-                            </div>
-                            <div class="space-y-6 border-b border-white/5 pb-16">
-                                <h3 class="text-white text-3xl font-serif italic">Payment Schedule</h3>
-                                <p class="text-neutral-500 text-lg font-light leading-relaxed">Deposit 1 (${state.content.p1Amount}) is due ${state.content.p1Date}. Final payment (${state.content.p2Amount}) due ${state.content.p2Date}. Payments should be coordinated via Zelle.</p>
-                            </div>
-                            <div class="space-y-6 border-b border-white/5 pb-16">
-                                <h3 class="text-white text-3xl font-serif italic">Snow Tubing & Activities</h3>
-                                <p class="text-neutral-500 text-lg font-light leading-relaxed">Bear Creek requires digital waivers. Please complete this via the provided link in the final itinerary email before arrival.</p>
+                                <h3 class="text-white text-3xl font-serif italic">Airport & Transport</h3>
+                                <p class="text-neutral-500 text-lg font-light leading-relaxed">Shuttles depart EWR at 2:00 PM. Coordination is via the final itinerary email sent one week prior.</p>
                             </div>
                         </div>
                     </div>
