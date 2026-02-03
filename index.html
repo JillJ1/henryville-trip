@@ -275,14 +275,37 @@
         };
 
         window.submitQuestion = async () => {
-            const txt = document.getElementById('q-input').value;
-            if(!txt.trim()) return;
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'questions'), {
-                text: txt, timestamp: Date.now(), answer: ""
-            });
-            alert("Inquiry Sent Successfully.");
-            document.getElementById('q-input').value = "";
-            navigate('home');
+            const input = document.getElementById('q-input');
+            if (!input) return;
+            const txt = input.value;
+            if(!txt.trim()) {
+                alert("Please enter a message before sending.");
+                return;
+            }
+
+            try {
+                // Ensure auth before writing
+                if (!auth.currentUser) {
+                    throw new Error("You must be signed in to send messages.");
+                }
+
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'questions'), {
+                    text: txt, 
+                    timestamp: Date.now(), 
+                    answer: ""
+                });
+
+                alert("Inquiry Sent Successfully.");
+                input.value = "";
+                navigate('home');
+            } catch (error) {
+                console.error("Submission Error:", error);
+                if (error.code === 'permission-denied') {
+                    alert("PERMISSION ERROR: Your message could not be sent. Please ensure you have enabled read/write access for authenticated users in your Firebase Firestore Rules.");
+                } else {
+                    alert("ERROR: " + error.message);
+                }
+            }
         };
 
         // --- ADMIN GALLERY HANDLERS ---
@@ -337,13 +360,15 @@
 
         // --- OTHER ADMIN HELPERS ---
         window.addGuest = async () => {
-            const name = document.getElementById('adm-guest-name').value;
-            const party = parseInt(document.getElementById('adm-guest-party').value);
+            const nameInput = document.getElementById('adm-guest-name');
+            const partyInput = document.getElementById('adm-guest-party');
+            const name = nameInput.value;
+            const party = parseInt(partyInput.value);
             if(!name) return;
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'attendees'), {
                 name, party, p1: false, p2: false, flights: false
             });
-            document.getElementById('adm-guest-name').value = "";
+            nameInput.value = "";
             alert("Guest Registered.");
         };
 
@@ -357,6 +382,7 @@
             const ans = document.getElementById(`reply-${id}`).value;
             if(!ans.trim()) return;
             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'questions', id), { answer: ans });
+            alert("Reply posted.");
         };
 
         window.saveGlobalContent = async () => {
@@ -538,6 +564,36 @@
                                     <div class="absolute inset-0 p-8 flex items-end bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <p class="text-xs font-serif italic text-white">${img.caption || 'Henryville Estate'}</p>
                                     </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (state.view === 'concierge') {
+                container.innerHTML = `
+                    <div class="view-fade-in max-w-2xl mx-auto space-y-20">
+                        <div class="text-center space-y-4">
+                            <h1 class="text-7xl font-serif text-white tracking-tighter italic">Contact.</h1>
+                            <p class="text-neutral-500 text-[10px] uppercase tracking-[0.4em]">Inquiry submission for hosts</p>
+                        </div>
+                        <div class="flex flex-col gap-6">
+                            <textarea id="q-input" placeholder="Type your message or question..." class="bg-transparent border-b border-white/10 p-6 text-2xl font-serif italic text-white focus:outline-none focus:border-white h-40"></textarea>
+                            <button onclick="submitQuestion()" class="bg-white text-black font-bold py-6 text-[10px] uppercase tracking-widest hover:bg-neutral-200">Send Inquiry</button>
+                        </div>
+                        <div class="space-y-16 pt-32">
+                            <h3 class="text-xs uppercase tracking-widest text-white font-bold border-b border-white/5 pb-4">Inquiry History</h3>
+                            ${state.questions.map(q => `
+                                <div class="space-y-6 pb-12 border-b border-white/5 last:border-none">
+                                    <p class="text-neutral-800 text-[9px] uppercase tracking-widest font-bold">Query Date: ${new Date(q.timestamp).toLocaleDateString()}</p>
+                                    <p class="text-white text-2xl font-light tracking-tight leading-relaxed">${q.text}</p>
+                                    ${q.answer ? `
+                                        <div class="pl-12 border-l border-white/10 space-y-4">
+                                            <p class="text-neutral-500 text-[10px] uppercase tracking-widest font-bold">Host Response</p>
+                                            <p class="text-neutral-300 italic font-serif text-xl leading-relaxed">${q.answer}</p>
+                                        </div>
+                                    ` : '<p class="text-neutral-800 text-[10px] uppercase tracking-widest">Awaiting Response...</p>'}
                                 </div>
                             `).join('')}
                         </div>
